@@ -4,27 +4,28 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import ApolloClient from "apollo-boost";
 import qry_list_by_page from "./graphql/queries/listByPage";
-import Print from "./components/Print/Print";
+import PrintCard from "./components/Print/PrintCard";
+import { Print } from "./global/types";
 
 const client = new ApolloClient({
   uri: "https://dev.heniapi.com/national-museum-prints/graphql",
 });
 
 function App() {
-  const [printsData, setPrintsData] = useState({ info: {}, records: [] });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorState, seterrorState] = useState(false);
+  const [printsData, setPrintsData] = useState<any>({ info: {}, records: [] });
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorState, seterrorState] = useState<boolean>(false);
 
   useEffect(() => {
-    const loadPrintData = async (_) => {
+    const loadPrintData = async (page: number) => {
       setIsLoading(true);
       seterrorState(false);
       try {
         const response = await client.query({
           query: qry_list_by_page,
           variables: {
-            page: currentPage,
+            page: page,
             pageSize: 10,
             classification: "Prints",
             sort: "rank",
@@ -44,7 +45,7 @@ function App() {
     loadPrintData(currentPage);
   }, [currentPage]);
 
-  const handlePageChange = (_, page) => setCurrentPage(page);
+  const handlePageChange = (_: any, page: number) => setCurrentPage(page);
 
   return (
     <div className="App">
@@ -56,7 +57,7 @@ function App() {
           have been verified to the ‘Best’ standard.
         </p>
         {errorState ? (
-          <div data-test="error-alert" variant="danger">
+          <div data-test="error-alert">
             Oops, an error occurred, please reload the page.
           </div>
         ) : (
@@ -66,16 +67,16 @@ function App() {
             ) : (
               <>
                 <div className="print-container">
-                  {printsData.records.map((print) => (
-                    <Print
+                  {printsData.records.map((print: Print) => (
+                    <PrintCard
                       key={print.id}
-                      print={print}
+                      {...print}
                       data-test={"print-" + print.id}
                     />
                   ))}
                 </div>
                 <Stack className="pagination-container">
-                  <Pagination                    
+                  <Pagination
                     onChange={handlePageChange}
                     page={currentPage}
                     count={printsData.info.pages}
