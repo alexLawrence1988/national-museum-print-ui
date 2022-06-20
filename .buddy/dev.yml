@@ -1,0 +1,38 @@
+- pipeline: "DEV"
+  on: "EVENT"
+  events:
+  - type: "PUSH"
+    refs:
+    - "refs/heads/dev"
+  priority: "NORMAL"
+  fail_on_prepare_env_warning: true
+  actions:
+  - action: "Execute npm run bundle"
+    type: "BUILD"
+    working_directory: "/buddy/national-museum-print-ui"
+    main_service_name: "Main"
+    docker_image_name: "library/node"
+    docker_image_tag: "16"
+    execute_commands:
+    - "npm install"
+    - "npm run bundle"
+    volume_mappings:
+    - "/:/buddy/national-museum-print-ui"
+    cache_base_image: true
+    shell: "BASH"
+  - action: "Upload files to AWS S3/national-museum-prints-ui"
+    type: "AMAZON_S3"
+    input_type: "BUILD_ARTIFACTS"
+    local_path: "dist"
+    bucket_name: "national-museum-prints-ui"
+    acl: "PRIVATE"
+    integration_hash: "Pr1gO3GWpmbkBPR6azJn4KRjLM"
+  - action: "Purge cache at National Museum React Site"
+    type: "CLOUD_FRONT"
+    input_type: "SCM_REPOSITORY"
+    distribution_id: "E11JJQH9USJ6PV"
+    distribution_name: "National Museum React Site"
+    purge_all: true
+    purge_by_change_set_limit: 10
+    timeout: 0
+    integration_hash: "Pr1gO3GWpmbkBPR6azJn4KRjLM"
